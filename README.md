@@ -4,7 +4,7 @@
 - [faker js (fake data)](https://www.npmjs.com/package/@faker-js/faker)
 
 
-## Prima Command 
+## Prima Commands
 - data base Connect
   - ไปเชื่อมต่อที่ไฟล์ [.env]() จากนั้นไปเปลี่ยน [provider]() เป็น 'mysql'
 ```ruby
