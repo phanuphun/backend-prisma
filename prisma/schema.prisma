@@ -1,0 +1,153 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+    provider = "prisma-client-js"
+}
+
+datasource db {
+    provider = "mysql"
+    url      = env("DATABASE_URL")
+}
+
+
+// user
+model OldAccout{
+    OldAccount_Id                           Int                             @id @default(autoincrement())
+    OldAccount_Rmuti_Id                     String                          @db.VarChar(13) @unique
+    OldAccount_UserName                     String                          @db.VarChar(255)
+    OldAccount_Password                     String                          @db.VarChar(255)
+    OldAccount_Fname                        String                          @db.VarChar(255)
+    OldAccount_Lname                        String                          @db.VarChar(255)
+}
+
+model Users {
+    User_Id                                 Int                             @id @default(autoincrement())
+    User_Rmuti_Id                           String                          @db.VarChar(13) @unique
+    User_Usernname                          String                          @db.VarChar(255)
+    User_password                           String                          @db.VarChar(255)
+    User_Fname                              String                          @db.VarChar(255)
+    User_Lname                              String                          @db.VarChar(255)
+    User_Email                              String                          @db.VarChar(255) @unique
+    User_Avatar                             String                          @db.VarChar(255)
+    User_Phone                              String
+    User_AboutMe                            String
+    User_Joined_Date                        DateTime                        @db.Timestamp()
+    User_Deleted                            Boolean                         @db.TinyInt()
+    User_Banned                             Boolean                         @db.TinyInt()
+    User_Email_Confirm                      Boolean                         @db.TinyInt()
+    USER_ROLES                              User_Roles[]
+    OTP_CONFIRM                             Otp_Confirm[]
+    PROJECTS_CREATED                        Project[]
+    PROJECTS_OWNER                          Project_Owner[]
+    PROJECT_INVITER_OWNER                   Project_Invite_Owner[]          @relation(name:"PROJECT_INVITER_OWNER")
+    PROJECT_ACCEPTOR_OWNER                  Project_Invite_Owner[]          @relation(name:"PROJECT_ACCEPTOR_OWNER")
+    PROJECTS_ADVISOR                        Project_Advisor[]
+    PROJECT_INVITER_ADVISOR                 Project_Invite_Advisor[]          @relation(name:"PROJECT_INVITER_ADVISOR")
+    PROJECT_ACCEPTOR_ADVISOR                Project_Invite_Advisor[]          @relation(name:"PROJECT_ACCEPTOR_ADVISOR")
+
+}
+
+model User_Roles {
+    User_Roles_id                           Int                             @id @default(autoincrement())
+    User_Roles_User_Id                      Int
+    User_Roles_Role_id                      Int
+    USER_ID                                 Users                           @relation(fields: [User_Roles_User_Id],references: [User_Id],onDelete: Cascade)
+    ROLE_ID                                 Roles                           @relation(fields: [User_Roles_Role_id],references: [Role_Id],onDelete: Cascade)
+}
+
+model Roles {
+    Role_Id                                 Int                             @id @default(autoincrement())
+    Role_Name                               String                          @db.VarChar(255)
+    USER_ROLES                              User_Roles[]
+}
+
+model Otp_Confirm {
+    Otp_Confirm_Id                          Int                             @id @default(autoincrement())
+    Otp_Confirm_OTP                         String                          @db.VarChar(6)
+    Otp_Confirm_Expire                      DateTime                        @db.DateTime()
+    Otp_Confirm_Status                      Boolean                         @db.TinyInt()
+    Otp_Confirm_Purpose                     String                          @db.VarChar(255)
+    Otp_Confirm_User_Id                     Int                             @db.Int()
+    USER_ID                                 Users                           @relation(fields: [Otp_Confirm_User_Id],references: [User_Id],onDelete: Cascade)
+}
+
+// project
+model Project {
+    Project_Id                              Int                             @id @default(autoincrement())
+    Project_Name_TH                         String                          @db.VarChar(255)
+    Project_Name_EN                         String                          @db.VarChar(255)
+    Project_Detail                          String                          @db.Text
+    Project_Avatar                          String                          @db.VarChar(255)
+    Project_Status                          Int                             @db.Int()
+    Project_Created_By                      Int                             @db.Int()
+    Project_Created_Date                    DateTime                        @db.DateTime()
+    Project_Deleted                         Boolean                         @db.TinyInt
+    PROJECT_CREATED_BY                      Users                           @relation(fields: [Project_Created_By], references: [User_Id] ,onDelete: Cascade)
+    PROJECT_STATUS_ID                       Project_Status                  @relation(fields: [Project_Status], references: [Project_Status_Id])
+    PROJECT_OWNER                           Project_Owner[]
+    PROJECT_INVITE_OWNER                    Project_Invite_Owner[]
+    PROJECT_ADVISOR                         Project_Advisor[]
+    PROJECT_INVITE_ADVISOR                  Project_Invite_Advisor[]
+    PROJECT_TRACKING                        Project_Tracking[]
+
+}
+
+model Project_Status {
+    Project_Status_Id                       Int                             @id @default(autoincrement())
+    Project_Status_Name                     String                          @db.VarChar(255)
+    PROJECT                                 Project[]
+}
+
+model Project_Owner {
+    Project_Owner_Id                        Int                             @id @default(autoincrement())
+    Project_Owner_Project_Id                Int                             @db.Int()
+    Project_Owner_User_Id                   Int                             @db.Int()
+    PROJECTS                                Project                         @relation(fields: [Project_Owner_Project_Id],references: [Project_Id] ,onDelete: Cascade)
+    OWNER                                   Users                           @relation(fields: [Project_Owner_User_Id],references: [User_Id] ,onDelete: Cascade)
+}
+
+model Project_Invite_Owner {
+    Project_Invite_Owner_Id                 Int                             @id @default(autoincrement())
+    Project_Invite_Owner_Project_Id         Int                             @db.Int()
+    Project_Invite_Owner_Inviter            Int                             @db.Int()
+    Project_Invite_Owner_Acceptor           Int                             @db.Int()
+    Project_Invite_Owner_Status             Boolean                         @db.TinyInt
+    PROJECT                                 Project                         @relation(fields: [Project_Invite_Owner_Project_Id],references: [Project_Id])
+    PROJECT_INVITER_OWNER                   Users                           @relation(fields: [Project_Invite_Owner_Inviter],references: [User_Id] ,name: "PROJECT_INVITER_OWNER")
+    PROJECT_ACCEPTOR_OWNER                  Users                           @relation(fields: [Project_Invite_Owner_Acceptor],references: [User_Id] ,name: "PROJECT_ACCEPTOR_OWNER")
+}
+
+model Project_Advisor {
+    Project_Advisor_Id                      Int                             @id @default(autoincrement())
+    Project_Advisor_Project_Id              Int                             @db.Int()
+    Project_Advisor_User_Id                 Int                             @db.Int()
+    Project_Advisor_Role                    Int                             @db.Int()
+    PROJECTS                                Project                         @relation(fields: [Project_Advisor_Project_Id],references: [Project_Id] ,onDelete: Cascade)
+    ADVISOR                                 Users                           @relation(fields: [Project_Advisor_User_Id],references: [User_Id] ,onDelete: Cascade)
+}
+
+model Project_Invite_Advisor {
+    Project_Invite_Advisor_Id               Int                             @id @default(autoincrement())
+    Project_Invite_Advisor_Project_Id       Int                             @db.Int()
+    Project_Invite_Advisor_File             String                          @db.VarChar(255)
+    Project_Invite_Advisor_Detail           String                          @db.VarChar(255)
+    Project_Invite_Advisor_Inviter          Int                             @db.Int()
+    Project_Invite_Advisor_Acceptor         Int                             @db.Int()
+    Project_Invite_Advisor_Reply_Status     Int                             @db.Int()
+    Project_Invite_Advisor_Reply_Msg        String                          @db.VarChar(255)
+    PROJECT                                 Project                         @relation(fields: [Project_Invite_Advisor_Project_Id],references: [Project_Id])
+    PROJECT_INVITER_OWNER                   Users                           @relation(fields: [Project_Invite_Advisor_Inviter],references: [User_Id] ,name: "PROJECT_INVITER_ADVISOR")
+    PROJECT_ACCEPTOR_OWNER                  Users                           @relation(fields: [Project_Invite_Advisor_Acceptor],references: [User_Id] ,name: "PROJECT_ACCEPTOR_ADVISOR")
+}
+
+model Project_Tracking {
+    Project_Tracking_Id                     Int                             @id @default(autoincrement())
+    Project_Tracking_Project_Id             Int                             @db.Int()
+    Project_Tracking_Topic                  String                          @db.VarChar(255)
+    Project_Tracking_File                   String                          @db.VarChar(255)
+    Project_Tracking_Status                 Int                             @db.Int()
+    Project_Tracking_Reply_Advisor          Boolean                         @db.TinyInt
+    Project_Tracking_Reply_Status           Int                             @db.Int()
+    PROJECT                                 Project                         @relation(fields: [Project_Tracking_Id],references: [Project_Id])
+}

@@ -1,0 +1,6 @@
+node_modules
+dist
+public/proposal/*
+!public/proposal/.gitkeep
+front_end
+.env
